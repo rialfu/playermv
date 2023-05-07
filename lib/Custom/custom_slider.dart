@@ -77,6 +77,7 @@ class CustomSlider extends StatefulWidget {
   final Function(DragUpdateDetails details, int change)? onPanUpdate;
   final Function(DragEndDetails details, int change)? onPanEnd;
   final Function(TapDownDetails details, int change)? onTapDown;
+  final Function(TapUpDetails details, int change)? onTapUp;
 
   const CustomSlider({
     super.key,
@@ -86,6 +87,7 @@ class CustomSlider extends StatefulWidget {
     this.onTapDown,
     this.onPanEnd,
     this.onPanUpdate,
+    this.onTapUp,
   });
 
   @override
@@ -101,7 +103,6 @@ class _CustomSliderState extends State<CustomSlider> {
   // double cache = 0;
   @override
   void initState() {
-    print('customslider:${widget.position} : ${widget.max}');
     super.initState();
     setState(() {
       position = widget.position.toDouble();
@@ -121,7 +122,6 @@ class _CustomSliderState extends State<CustomSlider> {
 
   @override
   Widget build(BuildContext context) {
-    print('customslider build:${widget.position} : ${widget.max}');
     return Flex(
       direction: Axis.horizontal,
       children: [
@@ -147,13 +147,17 @@ class _CustomSliderState extends State<CustomSlider> {
                     position = now;
                   });
                 },
+                onTapUp: (details) {
+                  if (widget.onTapDown != null) {
+                    widget.onTapUp!(details, position.toInt());
+                  }
+                },
                 onPanDown: (details) {
                   if (widget.onPanDown != null) {
                     widget.onPanDown!(details);
                   }
                 },
                 onPanUpdate: (details) {
-                  print("onPanUp");
                   double now = details.localPosition.dx;
                   now = now < 0 ? 0 : now;
                   now = now > snapshot.maxWidth ? snapshot.maxWidth : now;

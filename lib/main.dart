@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:playermv/Bloc/Services/video_service.dart';
-import 'package:playermv/Bloc/video_bloc.dart';
+// import 'package:playermv/Bloc/DataGlobal/video_bloc.dart';
+// import 'package:playermv/Bloc/DataGlobal/video_service.dart';
+// import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'package:playermv/Bloc/Services/video_service.dart';
+// import 'package:playermv/Bloc/video_bloc.dart';
 import 'package:playermv/pages/home.dart';
 
 void main() {
@@ -45,17 +48,15 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        return VideoBloc(videoRepo: VideoServices());
-        // return VideoBloc(videoRepo: VideoService());
-      },
-      child: MaterialApp(
-        routes: {
-          '/': (context) => const Home(),
-          '/video': (context) => const Home(),
-        },
-      ),
-    );
+    // return (BlocProvider(
+    //   create: (context) => VideoBloc(videosRepo: VideoServices()),
+    //   child: const MaterialApp(
+    //     home: Home(),
+    //   ),
+    // ));
+    return MaterialApp(routes: {
+      '/': (context) => const Home(),
+      '/video': (context) => const Home(),
+    });
   }
 }

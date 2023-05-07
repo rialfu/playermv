@@ -4,7 +4,7 @@ import 'package:playermv/Data/video_data.dart';
 import 'package:playermv/Tools/directory_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:playermv/pages/player.dart';
+import 'package:playermv/pages/player_screen.dart';
 
 class VideoList extends StatefulWidget {
   final String path;
@@ -21,12 +21,12 @@ class _VideoListState extends State<VideoList> {
       RootIsolateToken token = RootIsolateToken.instance!;
       List<VideoData> dataVideo = await compute(
           DirectoryService.loadVideo, IsolateData(token, widget.path));
-      print(data.length);
+      // print(data.length);
       setState(() {
         data = dataVideo;
       });
     } catch (e) {
-      print(e.toString());
+      // print(e.toString());
     }
     //
   }
@@ -76,6 +76,7 @@ class _VideoListState extends State<VideoList> {
                   ),
                 ),
               ),
+              constraints: const BoxConstraints(minHeight: 60),
               height: heightItem,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,

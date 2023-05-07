@@ -20,21 +20,24 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen> {
   VideoPlayerController? vp;
   ChewieController? cc;
-  ValueNotifier<bool> valueNotifier = ValueNotifier(true);
-  Timer? timer;
+  ValueNotifier<bool> valueNotifier = ValueNotifier(false);
   @override
   void initState() {
     super.initState();
-    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+      // DeviceOrientation.portraitUp,
+      // DeviceOrientation.landscapeLeft,
+    ]);
     loadVideo();
-    valueNotifier.addListener(listenerValueNotifier);
   }
 
   @override
   void dispose() {
     cc?.dispose();
     vp?.dispose();
-    timer?.cancel();
     // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
     //     overlays: SystemUiOverlay.values);
     super.dispose();
@@ -59,68 +62,59 @@ class _PlayerScreenState extends State<PlayerScreen> {
         cc = initializeCC;
         vp = initializeVP;
       });
-      // initializeCC.
-      // SystemChrome
-      // SystemChrome.setPreferredOrientations([
-      //   DeviceOrientation.landscapeRight,
-      //   DeviceOrientation.landscapeLeft,
-      // ]);
     }
-  }
-
-  void listenerValueNotifier() {
-    // timer?.cancel();
-    // timer = null;
-    // if (valueNotifier.value) {
-    //   timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-    //     valueNotifier.value = false;
-    //   });
-    // }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: GestureDetector(
-          onTap: () {
-            valueNotifier.value = !valueNotifier.value;
-          },
-          child: Container(
-            color: Colors.black,
-            width: double.infinity,
-            height: double.infinity,
-            child: (() {
-              if (vp != null && cc != null) {
-                return Stack(
-                  children: [
-                    PlayerVideo(cc!),
-                    Positioned(
-                      left: 0,
-                      bottom: 0,
-                      child: ControllerComponent(vp!, cc!, vn: valueNotifier),
-                    ),
-                  ],
-                );
-                // return PlayerVideo(cc!);
-              }
-              return Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                    decoration: BoxDecoration(
-                      border: Border.all(width: 5, color: Colors.black54),
-                    ),
-                    child: Row(),
-                  )
-                ],
-              );
-            }()),
+    // print("orientation");
+    // WidgetsBinding.instance!.addPostFrameCallback((timeStamp) => rerenderCheck);
+    return OrientationBuilder(
+        // stream: null,
+        builder: (context, orientation) {
+      print('orientation:${orientation == Orientation.portrait}');
+      return SafeArea(
+        child: Scaffold(
+          body: GestureDetector(
+            onTap: () {
+              valueNotifier.value = !valueNotifier.value;
+            },
+            child: Container(
+              color: Colors.black,
+              width: double.infinity,
+              height: double.infinity,
+              child: (() {
+                if (vp != null && cc != null) {
+                  return Stack(
+                    children: [
+                      PlayerVideo(cc!),
+                      Positioned(
+                        left: 0,
+                        bottom: 0,
+                        child: ControllerComponent(vp!, cc!, vn: valueNotifier),
+                      ),
+                    ],
+                  );
+                  // return PlayerVideo(cc!);
+                }
+                // return Stack(
+                //   alignment: Alignment.center,
+                //   children: [
+                //     Container(
+                //       padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                //       decoration: BoxDecoration(
+                //         border: Border.all(width: 5, color: Colors.black54),
+                //       ),
+                //       child: Row(),
+                //     )
+                //   ],
+                // );
+              }()),
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 
@@ -147,7 +141,7 @@ class ControllerComponent extends StatefulWidget {
 }
 
 class _ControllerComponentState extends State<ControllerComponent> {
-  bool active = true;
+  bool active = false;
   int max = 0;
   int now = 100;
   int nowMicro = 0;
@@ -173,6 +167,7 @@ class _ControllerComponentState extends State<ControllerComponent> {
   }
 
   void listenerVideo() {
+    print(widget.vp.value.position.inSeconds);
     setState(() {
       now = widget.vp.value.position.inSeconds;
       // nowMicro = widget.vp.value.position.inMilliseconds;
@@ -180,6 +175,10 @@ class _ControllerComponentState extends State<ControllerComponent> {
   }
 
   void listenerValueNotifier() {
+    timer?.cancel();
+    if (widget.vn?.value ?? false == true) {
+      timer = Timer(const Duration(seconds: 3), () => widget.vn?.value = false);
+    }
     setState(() {
       active = widget.vn?.value ?? false;
     });
@@ -190,19 +189,16 @@ class _ControllerComponentState extends State<ControllerComponent> {
     if (widget.cc.isPlaying) {
       widget.cc.pause();
       widget.vp.pause();
-      // widget.vp.removeListener(listenerVideo);
     } else {
-      // widget.vp.seekTo(Duration(microseconds: nowMicro));
       widget.vp.play();
       widget.cc.play();
-      // widget.vp.addListener(listenerVideo);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    print('${widget.vn?.value}');
-    // int n = now;
+    // print(active);
+    // print("aktif");
     var width = MediaQuery.of(context).size.width;
     var padding = MediaQuery.of(context).padding;
     var height =
@@ -211,7 +207,6 @@ class _ControllerComponentState extends State<ControllerComponent> {
       context,
       height,
       active,
-      // active,
       maxHeight: 90,
       child: Wrap(
         children: [
@@ -230,9 +225,16 @@ class _ControllerComponentState extends State<ControllerComponent> {
                         .remainder(60)
                         .toString()
                         .padLeft(2, '0');
+                    String text = duration.inSeconds > 3600
+                        ? '$hours:$minutes'
+                        : '$minutes:$seconds';
                     return ConstrainedBox(
-                        constraints: BoxConstraints(minWidth: width * 0.1),
-                        child: Text('$hours:$minutes:$seconds'));
+                      constraints: BoxConstraints(minWidth: width * 0.1),
+                      child: Text(
+                        text,
+                        // '$hours:$minutes:$seconds',
+                      ),
+                    );
                   }()),
                   (() {
                     // return Slider(
@@ -248,6 +250,8 @@ class _ControllerComponentState extends State<ControllerComponent> {
                           widget.vn?.value = true;
                           widget.vp.removeListener(listenerVideo);
                           widget.vp.seekTo(Duration(seconds: change));
+                        },
+                        onTapUp: (details, change) {
                           widget.vp.addListener(listenerVideo);
                         },
                         onPanDown: (details) {
@@ -288,32 +292,9 @@ class _ControllerComponentState extends State<ControllerComponent> {
                   ),
                   IconButton(
                     onPressed: () {
-                      print('full screen:${widget.cc.isFullScreen}');
-                      // Orientation orientation =
-                      //     MediaQuery.of(context).orientation;
-
-                      // if(widget.cc.isFullScreen)
-                      // orientation == Orientation.portrait
-                      // ? SystemChrome.setPreferredOrientations([
-                      //     DeviceOrientation.landscapeRight,
-                      //     DeviceOrientation.landscapeLeft,
-                      //   ])
-                      // : SystemChrome.setPreferredOrientations([
-                      //     DeviceOrientation.portraitUp,
-                      //   ]);
                       !widget.cc.isFullScreen
                           ? widget.cc.enterFullScreen()
                           : widget.cc.exitFullScreen();
-                      // Orientation orientation =
-                      //     MediaQuery.of(context).orientation;
-                      // orientation == Orientation.portrait
-                      //     ? SystemChrome.setPreferredOrientations([
-                      //         DeviceOrientation.landscapeRight,
-                      //         DeviceOrientation.landscapeLeft,
-                      //       ])
-                      //     : SystemChrome.setPreferredOrientations([
-                      //         DeviceOrientation.portraitUp,
-                      //       ]);
                     },
                     icon: const Icon(Icons.fullscreen),
                   )
