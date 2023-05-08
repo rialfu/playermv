@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:playermv/Bloc/video_path/video_bloc.dart';
+import 'package:playermv/Bloc/video_path/video_event.dart';
+import 'package:playermv/Bloc/video_path/video_state.dart';
 // import 'package:playermv/Bloc/DataGlobal/video_bloc.dart';
 // import 'package:playermv/Bloc/DataGlobal/video_state.dart';
 // import 'package:playermv/Bloc/States/video_state.dart';
@@ -23,72 +26,11 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   bool load = false;
   bool accessStorage = false;
-  List<int> listWillDelete = [];
-  List<String> listPath = [];
+  List<String> listWillDelete = [];
+  // List<String> listPath = [];
   int? choosePos;
-  Future<void> loadDirectory() async {
-    if (load) return;
-    setState(() {
-      load = true;
-    });
 
-    if (!accessStorage) {
-      // ignore: avoid_print
-      print("storage not granted");
-      setState(() {
-        load = false;
-      });
-      return;
-    }
-    try {
-      // ignore: avoid_print
-      print("start");
-
-      List<String> listPathContainsVideo =
-          await compute(DirectoryService.openDir, '/storage/emulated/0');
-      // List<String> listPathContainsVideo = await openDir('/storage/emulated/0');
-      setState(() {
-        listPath = listPathContainsVideo;
-      });
-    } catch (e) {
-      // ignore: avoid_print
-      print(e);
-    }
-    setState(() {
-      load = false;
-    });
-
-    // return null;
-  }
-
-  Future<void> askPermission() async {
-    if (Platform.isAndroid) {
-      PermissionStatus result = await Permission.storage.request();
-      if (result.isDenied) {
-        return;
-      }
-      result = await Permission.accessMediaLocation.request();
-      if (result.isDenied) {
-        return;
-      }
-      result = await Permission.manageExternalStorage.request();
-      if (result.isDenied) {
-        return;
-      }
-      // if (result.isDenied) {
-      //   result = await Permission.manageExternalStorage.request();
-      //   if (!result.isGranted) {
-      //     return;
-      //   }
-      // }
-    } else {
-      return;
-    }
-    DirectoryService.createDirectory();
-    setState(() {
-      accessStorage = true;
-    });
-  }
+  Future<void> askPermission() async {}
 
   @override
   void initState() {
@@ -96,51 +38,214 @@ class _HomeState extends State<Home> {
     // SystemChrome
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
-    // SystemChrome.setPreferredOrientations([
-    //   // DeviceOrientation.landscapeLeft,
-    //   // DeviceOrientation.landscapeRight,
-    //   DeviceOrientation.portraitUp,
-    //   // DeviceOrientation.landscapeLeft,
-    // ]);
     initialize();
   }
 
   Future<void> initialize() async {
-    // await askPermission();
-    // loadDirectory();
-    // BlocProvider.of<VideoBloc>(context).add(VideoEvents.fetchVideos);
-    // context.bloc<VideoBloc>().add(VideoEvents.fetchVideos);
-    // context.read<VideoBloc>().add(VideoEvents.fetchVideos);
+    context.read<VideoBloc>().add(VideoLoad());
   }
 
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+    print(choosePos);
     // double
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.red,
         title: Container(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-            width: MediaQuery.of(context).size.width,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Player"),
-                IconButton(
-                    onPressed: () {
-                      if (!accessStorage) {
-                        return;
-                      }
-                      if (load) {
-                        return;
-                      }
-                      loadDirectory();
-                    },
-                    icon: const Icon(Icons.autorenew_rounded,
-                        color: Colors.white, size: 20))
-              ],
-            )),
+          width: MediaQuery.of(context).size.width,
+          child: choosePos == null
+              ? Stack(
+                  children: [
+                    const Text("Player"),
+                    Positioned(
+                      top: 0.0,
+                      right: 30.0,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () {
+                          context.read<VideoBloc>().add(VideoLoad());
+                        },
+                        icon: const Icon(
+                          Icons.autorenew_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 0.0,
+                      right: 0.0,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () {
+                          // context.read<VideoBloc>().add(VideoLoad());
+                        },
+                        icon: const Icon(
+                          Icons.more_vert_rounded,
+                          color: Colors.white,
+                          size: 25,
+                        ),
+                      ),
+                    )
+                  ],
+                )
+              // Row(
+              //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //     children: [
+              //       const Text("Player"),
+              //       IconButton(
+              //         onPressed: () {
+              //           context.read<VideoBloc>().add(VideoLoad());
+              //         },
+              //         icon: const Icon(
+              //           Icons.autorenew_rounded,
+              //           color: Colors.white,
+              //           size: 20,
+              //         ),
+              //       )
+              //     ],
+              //   )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        setState(() {
+                          choosePos = null;
+                        });
+                      },
+                      icon: const Icon(Icons.arrow_back_rounded,
+                          color: Colors.white, size: 20),
+                    ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.delete,
+                          color: Colors.white, size: 20),
+                    )
+                  ],
+                ),
+        ),
+      ),
+      body: BlocBuilder<VideoBloc, VideoState>(
+        builder: (context, state) {
+          print(state.listPath);
+          if (state.status == VideoStatus.initial) {
+            return const Center(
+              child: Text("Please wait"),
+            );
+          } else if (state.status == VideoStatus.success) {
+            return ListView.builder(
+              itemCount: state.listPath.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    if (choosePos == null) {
+                      context
+                          .read<VideoBloc>()
+                          .add(ChoosePath(state.listPath[index]));
+                      return;
+                    }
+                    bool found = listWillDelete.contains(state.listPath[index]);
+                    if (found) {
+                      listWillDelete.removeWhere(
+                          (element) => element == state.listPath[index]);
+                      return;
+                    }
+                    setState(() {
+                      listWillDelete = [
+                        ...listWillDelete,
+                        state.listPath[index]
+                      ];
+                    });
+
+                    // Navigator.of(context).push(MaterialPageRoute(
+                    //     builder: (context) =>
+                    //         VideoList(path: listPath[index])));
+                  },
+                  onLongPress: () {
+                    print("testlong");
+                    setState(() {
+                      choosePos = index;
+                      listWillDelete = [
+                        ...listWillDelete,
+                        state.listPath[index]
+                      ];
+                    });
+                  },
+                  onPanDown: (details) {
+                    print('panDown');
+                  },
+                  onPanEnd: (details) {
+                    print('panend');
+                  },
+                  onPanCancel: () {
+                    print('panCancel');
+                  },
+                  onLongPressCancel: () {
+                    print("LongPressCancel");
+                    // setState(() {
+                    //   choosePos = null;
+                    // });
+                  },
+                  onTapDown: (details) {
+                    print('ontapdown');
+                    // setState(() {
+                    //   choosePos = index;
+                    // });
+                  },
+                  onTapCancel: () {
+                    print('ontapcancel');
+                    setState(() {
+                      choosePos = null;
+                    });
+                  },
+                  onTapUp: (details) {
+                    print('ontapup');
+                    setState(() {
+                      choosePos = null;
+                    });
+                  },
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      minHeight: 60,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          choosePos == index ? Colors.grey[200] : Colors.white,
+                      border: Border(
+                        bottom: BorderSide(
+                          width: (index == state.listPath.length - 1) ? 0 : 1,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    padding: EdgeInsets.fromLTRB(
+                        MediaQuery.of(context).size.width * 0.05,
+                        0,
+                        MediaQuery.of(context).size.width * 0.05,
+                        0),
+                    height: MediaQuery.of(context).size.height / 10,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(state.listPath[index].split('/').last),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          } else {
+            return const Center(child: Text("gagal"));
+          }
+        },
       ),
       // body:
       // BlocBuilder<VideoBloc, VideosState>(
@@ -191,84 +296,84 @@ class _HomeState extends State<Home> {
       //     );
       //   },
       // ),
-      body: ListView.builder(
-        itemCount: listPath.length,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () {
-              print("ontap");
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => VideoList(path: listPath[index])));
-            },
-            onLongPress: () {
-              print("testlong");
-              setState(() {
-                choosePos = index;
-              });
-            },
-            onPanDown: (details) {
-              print('panDown');
-            },
-            onPanEnd: (details) {
-              print('panend');
-            },
-            onPanCancel: () {
-              print('panCancel');
-            },
-            onLongPressCancel: () {
-              print("LongPressCancel");
-              setState(() {
-                choosePos = null;
-              });
-            },
-            onTapDown: (details) {
-              print('ontapdown');
-              setState(() {
-                choosePos = index;
-              });
-            },
-            onTapCancel: () {
-              print('ontapcancel');
-              setState(() {
-                choosePos = null;
-              });
-            },
-            onTapUp: (details) {
-              print('ontapup');
-              setState(() {
-                choosePos = null;
-              });
-            },
-            child: Container(
-              constraints: const BoxConstraints(
-                minHeight: 60,
-              ),
-              decoration: BoxDecoration(
-                color: choosePos == index ? Colors.grey[200] : Colors.white,
-                border: Border(
-                  bottom: BorderSide(
-                    width: (index == listPath.length - 1) ? 0 : 1,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              padding: EdgeInsets.fromLTRB(
-                  MediaQuery.of(context).size.width * 0.05,
-                  0,
-                  MediaQuery.of(context).size.width * 0.05,
-                  0),
-              height: MediaQuery.of(context).size.height / 10,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(listPath[index].split('/').last),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+      // body: ListView.builder(
+      //   itemCount: listPath.length,
+      //   itemBuilder: (context, index) {
+      //     return GestureDetector(
+      //       onTap: () {
+      //         print("ontap");
+      //         Navigator.of(context).push(MaterialPageRoute(
+      //             builder: (context) => VideoList(path: listPath[index])));
+      //       },
+      //       onLongPress: () {
+      //         print("testlong");
+      //         setState(() {
+      //           choosePos = index;
+      //         });
+      //       },
+      //       onPanDown: (details) {
+      //         print('panDown');
+      //       },
+      //       onPanEnd: (details) {
+      //         print('panend');
+      //       },
+      //       onPanCancel: () {
+      //         print('panCancel');
+      //       },
+      //       onLongPressCancel: () {
+      //         print("LongPressCancel");
+      //         setState(() {
+      //           choosePos = null;
+      //         });
+      //       },
+      //       onTapDown: (details) {
+      //         print('ontapdown');
+      //         setState(() {
+      //           choosePos = index;
+      //         });
+      //       },
+      //       onTapCancel: () {
+      //         print('ontapcancel');
+      //         setState(() {
+      //           choosePos = null;
+      //         });
+      //       },
+      //       onTapUp: (details) {
+      //         print('ontapup');
+      //         setState(() {
+      //           choosePos = null;
+      //         });
+      //       },
+      //       child: Container(
+      //         constraints: const BoxConstraints(
+      //           minHeight: 60,
+      //         ),
+      //         decoration: BoxDecoration(
+      //           color: choosePos == index ? Colors.grey[200] : Colors.white,
+      //           border: Border(
+      //             bottom: BorderSide(
+      //               width: (index == listPath.length - 1) ? 0 : 1,
+      //               color: Colors.grey,
+      //             ),
+      //           ),
+      //         ),
+      //         padding: EdgeInsets.fromLTRB(
+      //             MediaQuery.of(context).size.width * 0.05,
+      //             0,
+      //             MediaQuery.of(context).size.width * 0.05,
+      //             0),
+      //         height: MediaQuery.of(context).size.height / 10,
+      //         child: Column(
+      //           mainAxisAlignment: MainAxisAlignment.center,
+      //           crossAxisAlignment: CrossAxisAlignment.start,
+      //           children: [
+      //             Text(listPath[index].split('/').last),
+      //           ],
+      //         ),
+      //       ),
+      //     );
+      //   },
+      // ),
     );
   }
 }

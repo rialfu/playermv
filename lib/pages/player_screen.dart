@@ -72,7 +72,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
     return OrientationBuilder(
         // stream: null,
         builder: (context, orientation) {
-      print('orientation:${orientation == Orientation.portrait}');
       return SafeArea(
         child: Scaffold(
           body: GestureDetector(
@@ -167,7 +166,6 @@ class _ControllerComponentState extends State<ControllerComponent> {
   }
 
   void listenerVideo() {
-    print(widget.vp.value.position.inSeconds);
     setState(() {
       now = widget.vp.value.position.inSeconds;
       // nowMicro = widget.vp.value.position.inMilliseconds;
